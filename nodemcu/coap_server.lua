@@ -43,7 +43,7 @@ function cmd_handler(payload)
     if #respond == 0 then
         respond= "OK"
     end
-    return respond
+    return respond:gsub('\n*$',"")
 end
 
 cs:func("cmd_handler") -- post coap://192.168.18.103:5683/v1/f/cmd will call myfun
