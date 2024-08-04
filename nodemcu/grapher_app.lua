@@ -1,7 +1,7 @@
 local coap_s = nil
 local fm = nil
-local ads_m = nil
-local isAdsThreadEnabled = false
+local adc_m = nil
+local isAdcThreadEnabled = false
 
 
 local modname = ...
@@ -25,22 +25,22 @@ local function channel_handler(payload)
         channelNum = str_to_int(payload[2])
     end
 
-    return ads_m.readAnalog(channelNum)
+    return adc_m.readAnalog(channelNum)
 end
 
-local function main_ads_thread(taskYield)
-    print("Main Ads thread STARTED")
-    while isAdsThreadEnabled do
+local function main_adc_thread(taskYield)
+    print("Main Adc thread STARTED")
+    while isAdcThreadEnabled do
         cohelper.delay(100,nil,taskYield)
     end
-    print("Main Ads thread STOPED")
+    print("Main Adc thread STOPED")
 end
-local function start_ads_thread()
-    isAdsThreadEnabled = true
+local function start_adc_thread()
+    isAdcThreadEnabled = true
     startTimer = tmr.create()
     startTimer:register(5000, tmr.ALARM_SINGLE, 
         function() 
-            cohelper.exec(main_ads_thread)
+            cohelper.exec(main_adc_thread)
          end)
     startTimer:start()
 end
@@ -58,10 +58,10 @@ local function initApp(fileManager,coapServer,adsModule)
     end)
 
     coap_s.register("channel",channel_handler)
-    coap_s.register("ads_off",function(payload)
-         isAdsThreadEnabled = false
+    coap_s.register("adc_off",function(payload)
+         isAdcThreadEnabled = false
     end)
-    start_ads_thread()
+    start_adc_thread()
     print("App inited")
 end
 
