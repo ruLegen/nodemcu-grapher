@@ -5,6 +5,7 @@ local cs=coap.Server()
 local cmd_handlers = {} -- str -> arrayOf<function>
 
 function cmd_handler(payload)
+    
     if payload == nil then
         return "cmd null"
     end
@@ -24,6 +25,7 @@ function cmd_handler(payload)
     end
     cmd = filteredPayload[1]
     handlers = cmd_handlers[cmd]
+
     if handlers == nil or #handlers == 0 then
         return "no handler registered"  
     end

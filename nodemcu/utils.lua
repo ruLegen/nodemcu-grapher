@@ -7,6 +7,13 @@ function bool_to_number(value)
     if value == nil then return value end
     return value and 1 or 0
 end
+function str_to_int(val)
+    res = tonumber(val)
+    if res == nil then
+        res = 0
+    end
+    return res
+end
 function split(s, delimiter)
     result = {};
     for match in (s..delimiter):gmatch("(.-)"..delimiter) do
