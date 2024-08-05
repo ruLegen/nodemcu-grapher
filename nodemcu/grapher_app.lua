@@ -5,17 +5,8 @@ local isAdcThreadEnabled = false
 local lastChannelValues = {}
 local modname = ...
 local cohelper = require("cohelper")
+local activeWriteStreams = {}       -- guid -> {guid,filename,channel,status}
 
-
-
-local function test_handler(payload)
-    print("TEST")
-    print_t(payload)
-end
-local function cc_handler(payload)
-    print("CCC")
-    return 123
-end
 local function channel_handler(payload)
     local strArray = map(lastChannelValues,function(sample) 
         return table_to_str(sample)
@@ -66,7 +57,14 @@ local function main_adc_thread(coroutineScope)
     print("Main Adc thread STOPED")
 end
 local function start_adc_thread()
+    print("Free memory " .. fm.getFreeSpace()/1024.0 .. " kb")
+    if fm.getFreeSpace() < 200 then
+        isAdcThreadEnabled = false
+        print("No free memory left")
+        return
+    end
     isAdcThreadEnabled = true
+    
     startTimer = tmr.create()
     startTimer:register(5000, tmr.ALARM_SINGLE, 
         function() 
@@ -80,7 +78,8 @@ local function initApp(fileManager,coapServer,adsModule)
     coap_s = coapServer
     fm = fileManager
     adc_m = adsModule 
-    
+    math.randomseed(node.random(1024))
+
     coap_s.register("test",test_handler)
     coap_s.register("cc",cc_handler)
     coap_s.register("space",function(payload)
