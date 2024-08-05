@@ -1,3 +1,13 @@
+function table_to_str(object) 
+    if object == nil then
+        return "{}"
+    end
+    res = ""
+    for k,v in pairs(object) do
+        res = res .. k .. "=" .. v .. ";"
+    end
+    return res
+end
 function print_t(object)
     for k,v in pairs(object) do
         print(k,v)
@@ -15,19 +25,26 @@ function str_to_int(val)
     return res
 end
 function split(s, delimiter)
-    result = {};
+    local result = {};
     for match in (s..delimiter):gmatch("(.-)"..delimiter) do
         table.insert(result, match);
     end
     return result;
 end
 
-function map(arr,functor)
-    res = {}
+function filter(arr,functor)
+    local res = {}
     for i,val in ipairs(arr) do
         if functor(val) then
             table.insert(res, val)
         end
+    end
+    return res
+end
+function map(arr,functor)
+    local res = {}
+    for i,val in ipairs(arr) do
+         table.insert(res, functor(val))
     end
     return res
 end

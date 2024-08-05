@@ -15,7 +15,7 @@ function cmd_handler(payload)
         return "no response"
     end
 
-    filteredPayload = map(parsedPayload, 
+    filteredPayload = filter(parsedPayload, 
         function(val)
             return val ~= "" and val ~= "\r\n" and #val > 0
         end
