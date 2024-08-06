@@ -1,5 +1,5 @@
 local modname = ...
-package.loaded[modname] = nil
+----package.loaded[modname] = nil
 
 local cs=coap.Server()
 local cmd_handlers = {} -- str -> arrayOf<function>
@@ -67,7 +67,7 @@ end
 
 return {
     init = function(port) 
-        package.loaded[modname] = nil
+        -- --package.loaded[modname] = nil
         cs:listen(port)
         print("Listening CoAP " .. port)
     end,

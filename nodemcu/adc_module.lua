@@ -19,7 +19,7 @@ end
  
 
 local function initModule()
-        package.loaded[modname] = nil
+        --package.loaded[modname] = nil
         
         i2c.setup(id, sda, scl, i2c.SLOW)
         ads1115.reset()

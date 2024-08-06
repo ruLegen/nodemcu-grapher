@@ -1,0 +1,1 @@
+node.startup({frequency=node.CPU160MHZ,command="if node.LFS.init then node.LFS.init() else dofile('init.lua') end"})

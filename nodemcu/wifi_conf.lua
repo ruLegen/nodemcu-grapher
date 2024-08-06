@@ -1,13 +1,13 @@
 local modname = ...
 
-package.loaded[modname] = nil
+--package.loaded[modname] = nil
 
 wifi.setmode(wifi.SOFTAP)
 
 
 return {
     init = function(ssid,pass)
-        package.loaded[modname] = nil
+        --package.loaded[modname] = nil
         ap_cfg=
         {
             ssid=ssid,

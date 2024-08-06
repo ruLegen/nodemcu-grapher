@@ -65,7 +65,7 @@ end
 return { 
     delay = taskDelay,
     exec = function(func, ...) -- upval: modname
-            package.loaded[modname] = nil
+            --package.loaded[modname] = nil
             local co = coroutine.create(func)
             return coroutine.resume(co, taskYieldFactory(co), ... )
         end
