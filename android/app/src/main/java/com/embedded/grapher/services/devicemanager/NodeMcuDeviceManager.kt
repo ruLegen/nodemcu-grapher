@@ -4,59 +4,44 @@ import com.embedded.grapher.components.NodeMcuFileInfo
 import com.embedded.grapher.components.NodeMcuFileStatus
 import com.embedded.grapher.utils.NodeMcuSample
 import com.embedded.grapher.utils.NodeMcuSampleHelper
-import org.eclipse.californium.core.CoapClient
-import org.eclipse.californium.core.CoapResponse
-import org.eclipse.californium.core.Utils
-import org.eclipse.californium.core.coap.MediaTypeRegistry
+import io.ktor.client.*
+import io.ktor.client.call.body
+import io.ktor.client.engine.android.*
+import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import java.net.Socket
-import java.net.URI
 import javax.inject.Inject
 
 class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
 
     private var serverHost: String = ""
-    private var serverUri: URI? = null
-    private val client: CoapClient?
-        get() {
-            if (serverUri == null)
-                return null
-            return CoapClient(serverUri).apply {
-                timeout = 8000
-                useEarlyNegotiation(32)
-                useExecutor()
-            }
-        }
+    private var serverUri: String? = null
+    private var client :HttpClient = HttpClient(Android)
 
-    override suspend fun connect(url: String, port: Int): Boolean {
-        val urltring = "coap://$url:$port/v1/f/cmd_handler"
-        serverHost = url
-        serverUri = URI(urltring)
-        val coapClient = client!!
-        return checkConnection(coapClient)
+    override suspend fun connect(host: String, port: Int): Boolean {
+        serverHost = host
+        serverUri ="http://$host:$port/"
+
+        return checkConnection()
     }
 
-    private fun checkConnection(coapClient: CoapClient): Boolean {
+    private suspend fun checkConnection(): Boolean {
         try {
-            val resp = client!!.post("heartbeat".toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return false
-            return true
+            val resp = client.get(buildRequest("heartbeat"))
+            return resp.status == HttpStatusCode.OK
         } catch (ex: Exception) {
             return false
         }
     }
 
+    private fun buildRequest(destination: String): String {
+        return serverUri!! + destination
+    }
+
     override suspend fun getFiles(): List<NodeMcuFileInfo>? {
         try {
-            val coapClient = client!!
-            val isConnected = checkConnection(coapClient)
-            if (!isConnected)
-                return null
-
-            val resp = coapClient.post("files_list".toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return null
-            val text = resp.responseText
+            val resp = client.get(buildRequest("files_list"))
+            val text = resp.body<String>()
             if (text.isEmpty())
                 return emptyList()
             val fileInfos = text.split("@").map {
@@ -66,7 +51,7 @@ class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
                 val name = fields.tryGet(0, "NO_NAME")
                 val size = fields.tryGet(1, "0").toInt()
                 val status = fields.tryGet(2, "0").toInt()
-                NodeMcuFileInfo(name, name, NodeMcuFileStatus.fromInt(status))
+                NodeMcuFileInfo(name, name,size, NodeMcuFileStatus.fromInt(status))
             }.toList()
             return fileInfos
         } catch (ex: Exception) {
@@ -77,15 +62,8 @@ class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
 
     override suspend fun getFileSamples(fileId: String): List<NodeMcuSample>? {
         try {
-            val coapClient = client!!
-            val isConnected = checkConnection(coapClient)
-            if (!isConnected)
-                return null
-            val resp =
-                coapClient.post("files_read_${fileId}".toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return null
-            val text = resp.responseText
+          val resp = client.get(buildRequest("files_read_${fileId}"))
+            val text = resp.body<String>()
             if (text.isEmpty())
                 return null
             val port = text.toIntOrNull() ?: 0
@@ -107,14 +85,7 @@ class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
 
     override suspend fun deleteFileSample(fileId: String):Boolean{
         try {
-            val coapClient = client!!
-            val isConnected = checkConnection(coapClient)
-            if (!isConnected)
-                return false
-            val resp =
-                coapClient.post("files_remove_${fileId}".toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return false
+            val resp = client.get(buildRequest("files_remove_${fileId}"))
             return true
         } catch (ex: Exception) {
             println(ex)
@@ -127,15 +98,8 @@ class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
         if(stringId == null)
             return false
         try {
-            val coapClient = client!!
-            val isConnected = checkConnection(coapClient)
-            if (!isConnected)
-                return false
-            val resp =
-                coapClient.post("stream_stop_${stringId}".toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return false
-            val textResponse =  resp.responseText
+            val resp = client.get(buildRequest("stream_stop_${stringId}"))
+            val textResponse =  resp.body<String>()
             return textResponse == stringId
         } catch (ex: Exception) {
             println(ex)
@@ -155,40 +119,15 @@ class NodeMcuDeviceManager @Inject constructor() : DeviceManager {
         val channels = arrayOf(ChannelStatus(1,channel1),ChannelStatus(2,channel2),ChannelStatus(3,channel3),ChannelStatus(4,channel4))
         val channelsToStart = channels.joinToString(separator = "_") { it.num.toString() }
         try {
-            val coapClient = client!!
-            val isConnected = checkConnection(coapClient)
-            if (!isConnected)
-                return false
             val cmd = "stream_start_${channelsToStart}"
-            val resp = coapClient.post(cmd.toByteArray(), MediaTypeRegistry.TEXT_PLAIN)
-            if (resp == null)
-                return false
-            val textResponse =  resp.responseText
+            val resp = client.get(buildRequest(cmd))
+            val textResponse =  resp.body<String>()
             val id = textResponse.toLongOrNull() ?: 0
             return id != 0L
         } catch (ex: Exception) {
             println(ex)
             return false
         }
-    }
-
-    fun printResponse(response: CoapResponse?) {
-        if (response != null) {
-            println("${response.code} - ${response.code.name}")
-            println("${response.options}")
-            println(response.responseText)
-            println("Advanced: ")
-            val context = response.advanced().sourceContext
-            val identity = context.peerIdentity
-            if (identity != null)
-                println(context.peerIdentity)
-            else
-                println("Anonymous")
-            println(Utils.prettyPrint(response))
-        } else
-            println("No response received.")
-
-        println("\n")
     }
 }
 

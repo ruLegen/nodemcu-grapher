@@ -30,7 +30,7 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
     val lineProvider
         get() = LineCartesianLayer.LineProvider.series(lineSeries)
     val chartSeriesProduced = CartesianChartModelProducer()
-    private var lineSeries: List<LineCartesianLayer.Line> = emptyList()
+    private var lineSeries: List<LineCartesianLayer.Line> = listOf(getDefaultLineStyle(LineCartesianLayer.LineFill.single(fill(getColorByChannel(0)))))
 
     private val scope = CoroutineScope(EmptyCoroutineContext)
     private val _files: MutableStateFlow<Async<List<NodeMcuSample>>> =
@@ -50,18 +50,7 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
 
             lineSeries = groupByChannel.map { (k, v) ->
                 val fill = LineCartesianLayer.LineFill.single(fill(getColorByChannel(k)))
-                return@map LineCartesianLayer.Line(
-                    fill,
-                    2f.dp.value,
-                    null,
-                    Paint.Cap.ROUND,
-                    null,
-                    LineCartesianLayer.PointConnector.cubic(),
-                    null,
-                    VerticalPosition.Top,
-                    CartesianValueFormatter.decimal(),
-                    0f,
-                )
+                return@map getDefaultLineStyle(fill)
             }.toList()
 
             chartSeriesProduced.runTransaction {
@@ -76,6 +65,26 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
         }
     }
 
-    private fun getColorByChannel(k: Int): Color =
-        arrayOf(Color.Gray,Color.Red,Color.Gray,Color.Blue,Color.Yellow)[k]
+    private fun getDefaultLineStyle(fill: LineCartesianLayer.LineFill): LineCartesianLayer.Line {
+        return LineCartesianLayer.Line(
+            fill,
+            2f.dp.value,
+            null,
+            Paint.Cap.ROUND,
+            null,
+            LineCartesianLayer.PointConnector.cubic(),
+            null,
+            VerticalPosition.Top,
+            CartesianValueFormatter.decimal(),
+            0f,
+        )
+    }
+
+    private fun getColorByChannel(k: Int): Color{
+        var index = k-1;        // channels starts from 1
+        val colors = arrayOf(Color.Gray, Color.Red, Color.Gray, Color.Blue, Color.Yellow)
+        if(index < 0 || index > colors.size-1)
+            index =0
+        return  colors[index]
+    }
 }

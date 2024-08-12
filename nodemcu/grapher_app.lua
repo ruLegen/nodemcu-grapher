@@ -1,4 +1,4 @@
-local coap_s = nil
+local http_s = nil
 local fm = nil
 local adc_m = nil
 local isAdcThreadEnabled = false
@@ -118,8 +118,22 @@ local function files_handler(payload)
         end)
         local res = table.concat(strArray, "@")
         if #res == 0 then
-            return ""
+            res = ""
         end
+        -- local sv = net.createServer(net.TCP, 30)
+        -- if not sv then
+        --     return "file exist but cannot send it"
+        -- end
+        -- local port = node.random(1025,65000)
+        -- sv:listen(port,function(socket)
+        --     socket:on("connection",function ()
+        --         print("Connected")
+        --         socket:send(res)
+        --         socket:close()
+        --     end)
+        -- end)        
+        -- print("sending files to " .. port)
+        -- print(res)
         return res
     elseif cmd == "read" then
         local fileName = getOrNull(payload,3)
@@ -248,23 +262,23 @@ end
 local function initApp(fileManager, coapServer, adsModule)
     -- package.loaded[modname] = nil
     collectgarbage("collect")
-    coap_s = coapServer
+    http_s = coapServer
     fm = fileManager
     adc_m = adsModule
     math.randomseed(node.random(1024))
 
-    coap_s.register("space", function(payload)
+    http_s.register("space", function(payload)
         return fm.getFreeSpace()
     end)
 
-    coap_s.register("channel", channel_handler)
-    coap_s.register("stream", stream_hanlder)
-    coap_s.register("files", files_handler)
-    coap_s.register("heartbeat", function(payload)
+    http_s.register("channel", channel_handler)
+    http_s.register("stream", stream_hanlder)
+    http_s.register("files", files_handler)
+    http_s.register("heartbeat", function(payload)
         return "OK"
     end)
 
-    coap_s.register("adc_off", function(payload)
+    http_s.register("adc_off", function(payload)
         isAdcThreadEnabled = false
     end)
     start_adc_thread()

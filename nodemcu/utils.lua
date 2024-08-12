@@ -128,3 +128,11 @@ function sendFileViaSocket(file, socket,fifosocket)
     socket:on("sent", nil)
     socket:close()
 end
+
+function sendStringViaSocket(str,socket,fifosocket)
+    local ssend = fifosocket.wrap(socket) 
+    ssend(str)
+    ssend = nil
+    socket:on("sent", nil)
+    socket:close()
+end

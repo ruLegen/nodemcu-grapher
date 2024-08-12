@@ -3,12 +3,9 @@ package com.embedded.grapher.services.devicemanager
 import com.embedded.grapher.components.NodeMcuFileInfo
 import com.embedded.grapher.components.NodeMcuFileStatus
 import com.embedded.grapher.utils.NodeMcuSample
-import dagger.hilt.android.lifecycle.HiltViewModel
 import org.eclipse.californium.core.CoapClient
 import org.eclipse.californium.core.CoapResponse
 import org.eclipse.californium.core.Utils
-import org.eclipse.californium.core.coap.MediaTypeRegistry
-import java.net.URI
 import javax.inject.Inject
 
 
@@ -18,7 +15,12 @@ class FakeDeviceManager @Inject constructor() : DeviceManager {
 
      override suspend fun getFiles():List<NodeMcuFileInfo>{
         return (0..10).map{
-            NodeMcuFileInfo("id$it","FileName $it", (if(it % 2 == 0)  NodeMcuFileStatus.RUNNING else NodeMcuFileStatus.CLOSED))
+            NodeMcuFileInfo(
+                "id$it",
+                "FileName $it",
+                0,
+                (if(it % 2 == 0)  NodeMcuFileStatus.RUNNING else NodeMcuFileStatus.CLOSED)
+            )
         }.toList()
     }
 

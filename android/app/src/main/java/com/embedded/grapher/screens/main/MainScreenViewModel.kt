@@ -64,7 +64,7 @@ class MainScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
             if(stoped){
                 prevFiles = prevFiles.map {
                     if(it.id == file){
-                       return@map NodeMcuFileInfo(it.id,it.name,NodeMcuFileStatus.CLOSED)
+                       return@map NodeMcuFileInfo(it.id, it.name, it.size, NodeMcuFileStatus.CLOSED)
                     }
                     it
                 }.toList()

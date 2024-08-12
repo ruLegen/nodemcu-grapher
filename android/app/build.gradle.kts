@@ -74,8 +74,9 @@ dependencies {
 //    compose
     implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.27")
     implementation("com.google.dagger:hilt-android:2.49")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-    implementation(files("../libs/ncoap-core.jar"))
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation ("io.ktor:ktor-client-core:2.3.12")
+    implementation ("io.ktor:ktor-client-android:2.3.12")
     kapt("com.google.dagger:hilt-android-compiler:2.49")
 
     implementation(libs.androidx.core.ktx)
