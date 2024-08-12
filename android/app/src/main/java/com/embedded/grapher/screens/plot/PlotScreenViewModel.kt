@@ -10,14 +10,9 @@ import com.embedded.grapher.components.NodeMcuFileInfo
 import com.embedded.grapher.services.devicemanager.DeviceManager
 import com.embedded.grapher.utils.Async
 import com.embedded.grapher.utils.NodeMcuSample
-import com.patrykandpatrick.vico.compose.common.fill
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
-import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
-import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.core.cartesian.layer.getDefaultAreaFill
-import com.patrykandpatrick.vico.core.common.Defaults
-import com.patrykandpatrick.vico.core.common.VerticalPosition
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,12 +20,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.EmptyCoroutineContext
 
+
 @HiltViewModel
 class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel() {
-    val lineProvider
-        get() = LineCartesianLayer.LineProvider.series(lineSeries)
-    val chartSeriesProduced = CartesianChartModelProducer()
-    private var lineSeries: List<LineCartesianLayer.Line> = listOf(getDefaultLineStyle(LineCartesianLayer.LineFill.single(fill(getColorByChannel(0)))))
+
+    var lineData = MutableStateFlow(LineData())
 
     private val scope = CoroutineScope(EmptyCoroutineContext)
     private val _files: MutableStateFlow<Async<List<NodeMcuSample>>> =
@@ -40,51 +34,42 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
             )
         )
 
+    fun updateRanges(ranges: PlotRanges) {
+        scope.launch {
+            loadSamples("awd")
+        }
+    }
+    var i =0
     fun loadSamples(nodeMcuFileName: String) {
         scope.launch {
+            i++
             val samples = dm.getFileSamples(nodeMcuFileName)
             if (samples == null)
                 return@launch
 
             val groupByChannel = samples.groupBy { it.channel }
-
-            lineSeries = groupByChannel.map { (k, v) ->
-                val fill = LineCartesianLayer.LineFill.single(fill(getColorByChannel(k)))
-                return@map getDefaultLineStyle(fill)
+            val lineSeries = groupByChannel.map { (k, v) ->
+              val entries = v.map { Entry(it.time,it.value) }
+              val data = LineDataSet(entries,"Channel $k").apply {
+                  color = getColorByChannel(k)
+                  setDrawCircleHole(false)
+                  lineWidth = 3f
+                  fillAlpha = 115
+                  isHighlightEnabled = true
+//                  enableDashedLine(10f, 5f, 0f);
+              }
+              return@map data
             }.toList()
-
-            chartSeriesProduced.runTransaction {
-                lineSeries {
-                    for ((key, value) in groupByChannel) {
-                        val x = value.map { sample -> sample.time }
-                        val y = value.map { sample -> sample.value }
-                        series(x, y)
-                    }
-                }
-            }
+            val data = LineData(lineSeries)
+            lineData.tryEmit(data)
         }
     }
 
-    private fun getDefaultLineStyle(fill: LineCartesianLayer.LineFill): LineCartesianLayer.Line {
-        return LineCartesianLayer.Line(
-            fill,
-            2f.dp.value,
-            null,
-            Paint.Cap.ROUND,
-            null,
-            LineCartesianLayer.PointConnector.cubic(),
-            null,
-            VerticalPosition.Top,
-            CartesianValueFormatter.decimal(),
-            0f,
-        )
-    }
-
-    private fun getColorByChannel(k: Int): Color{
-        var index = k;        // channels starts from 1
-        val colors = arrayOf(Color.Gray, Color.Red, Color.Gray, Color.Blue, Color.Yellow)
-        if(index < 0 || index > colors.size-1)
-            index =0
-        return  colors[index]
+    private fun getColorByChannel(k: Int): Int {
+        val colors = arrayOf(android.graphics.Color.GRAY,android.graphics.Color.RED,android.graphics.Color.GREEN,android.graphics.Color.BLUE)
+        var index = k % colors.size
+        if (index < 0 || index > colors.size - 1)
+            index = 0
+        return colors[index]
     }
 }

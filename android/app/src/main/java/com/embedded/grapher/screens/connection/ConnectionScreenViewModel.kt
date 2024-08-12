@@ -39,8 +39,6 @@ class ConnectionScreenViewModel
     fun startConnection() {
         scope.launch {
             _isConnected.value = Async.Loading
-            delay(1000)
-
             val connected = dm.connect(urlServer.value,_portServer.value.toIntOrNull() ?: 1024)
             _isConnected.value = if (connected) Async.Success(true) else Async.Error(-1)
         }

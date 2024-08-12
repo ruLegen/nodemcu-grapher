@@ -3,15 +3,11 @@ package com.embedded.grapher.services.devicemanager
 import com.embedded.grapher.components.NodeMcuFileInfo
 import com.embedded.grapher.components.NodeMcuFileStatus
 import com.embedded.grapher.utils.NodeMcuSample
-import org.eclipse.californium.core.CoapClient
-import org.eclipse.californium.core.CoapResponse
-import org.eclipse.californium.core.Utils
 import javax.inject.Inject
 
 
 class FakeDeviceManager @Inject constructor() : DeviceManager {
 
-    private var client : CoapClient? = null
 
      override suspend fun getFiles():List<NodeMcuFileInfo>{
         return (0..10).map{
@@ -31,15 +27,23 @@ class FakeDeviceManager @Inject constructor() : DeviceManager {
 
 
     override suspend fun getFileSamples(fileId: String): List<NodeMcuSample>? {
-        TODO("Not yet implemented")
+        val samples = mutableListOf<NodeMcuSample>()
+        repeat(150){i->
+            val index = i%4
+            val channel =index+1
+            val angle = Math.sin((index*Math.PI/3)+ Math.PI * 2 * (i/150f)).toFloat()
+            val time = i/100f
+            samples.add(NodeMcuSample(time,angle,channel))
+        }
+        return samples
     }
 
     override suspend fun deleteFileSample(fileId: String): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
     override suspend fun stopFileRecording(file: String): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
     override suspend fun startRecording(
@@ -48,25 +52,7 @@ class FakeDeviceManager @Inject constructor() : DeviceManager {
         channel3: Boolean,
         channel4: Boolean
     ): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 
-    fun printResponse(response: CoapResponse?) {
-        if (response != null) {
-            println("${response.code} - ${response.code.name}")
-            println("${response.options}")
-            println(response.responseText)
-            println("Advanced: ")
-            val context = response.advanced().sourceContext
-            val identity = context.peerIdentity
-            if (identity != null)
-                println(context.peerIdentity)
-            else
-                println("Anonymous")
-            println(Utils.prettyPrint(response))
-        } else
-            println("No response received.")
-
-        println("\n")
-    }
 }

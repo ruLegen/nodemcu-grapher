@@ -66,13 +66,9 @@ kapt {
     correctErrorTypes = true
 }
 dependencies {
-//    COAP
-    implementation("org.eclipse.californium:scandium:3.12.1")
-    implementation("org.eclipse.californium:californium-core:3.12.1")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
-
-//    compose
-    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.27")
+//  compose
     implementation("com.google.dagger:hilt-android:2.49")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation ("io.ktor:ktor-client-core:2.3.12")

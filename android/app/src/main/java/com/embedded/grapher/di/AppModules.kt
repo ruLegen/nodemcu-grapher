@@ -16,5 +16,5 @@ abstract class AppModules {
 
     @Binds
     @Singleton
-    abstract fun bindsDeviceManager(dm: NodeMcuDeviceManager) : DeviceManager
+    abstract fun bindsDeviceManager(dm: FakeDeviceManager) : DeviceManager
 }
