@@ -39,13 +39,13 @@ import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.utils.Utils
 
 data class PlotRanges(
-    val minX: Double = 0.0,
-    val minY: Double = 0.0,
-    val maxX: Double = 0.0,
-    val maxY: Double = 0.0
+    val minX: Float = 0.0f,
+    val minY: Float = 0.0f,
+    val maxX: Float = 0.0f,
+    val maxY: Float = 0.0f
 ) {
     fun isZero(): Boolean {
-        return !(minX != 0.0 || minY != 0.0 || maxX != 0.0 || maxY != 0.0)
+        return !(minX != 0.0f || minY != 0.0f || maxX != 0.0f || maxY != 0.0f)
     }
 }
 
@@ -56,7 +56,7 @@ fun PlotScreen(
     vm: PlotScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
-    var plotRanges by remember { mutableStateOf(PlotRanges(-1.0, 0.0, 5.0, 5.0)) }
+    val plotRanges by vm.plotRanges.collectAsState()
     val lineData by vm.lineData.collectAsState()
     LaunchedEffect(true) {
         vm.loadSamples(nodeMcuFileName)
@@ -72,7 +72,7 @@ fun PlotScreen(
                 modifier = Modifier.padding(0.dp),
                 textAlign = TextAlign.Center
             )
-            Plot(lineData)
+            Plot(lineData, plotRanges)
         }
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -85,24 +85,20 @@ fun PlotScreen(
 
         Text("min x ${plotRanges.minX}")
         Slider(value = plotRanges.minX.toFloat(), valueRange = -5f..5f, onValueChange = {
-            plotRanges = plotRanges.copy(minX = it.toDouble())
-            vm.updateRanges(plotRanges)
+            vm.updateRanges(plotRanges.copy(minX = it))
         })
 
         Text("min y ${plotRanges.minY}")
         Slider(value = plotRanges.minY.toFloat(), valueRange = -5f..5f, onValueChange = {
-            plotRanges = plotRanges.copy(minY = it.toDouble())
-            vm.updateRanges(plotRanges)
+            vm.updateRanges(plotRanges.copy(minY = it))
         })
         Text("max x ${plotRanges.maxX}")
         Slider(value = plotRanges.maxX.toFloat(), valueRange = -5f..5f, onValueChange = {
-            plotRanges = plotRanges.copy(maxX = it.toDouble())
-            vm.updateRanges(plotRanges)
+            vm.updateRanges(plotRanges.copy(maxX = it))
         })
         Text("max y ${plotRanges.maxY}")
         Slider(value = plotRanges.maxY.toFloat(), valueRange = -5f..5f, onValueChange = {
-            plotRanges = plotRanges.copy(maxY = it.toDouble())
-            vm.updateRanges(plotRanges)
+            vm.updateRanges(plotRanges.copy(maxY = it))
         })
 
 
@@ -110,23 +106,32 @@ fun PlotScreen(
 }
 
 @Composable
-private fun Plot(lineData: LineData) {
-    AndroidView(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f),
+private fun Plot(lineData: LineData, plotRanges: PlotRanges) {
+    AndroidView(modifier = Modifier
+        .fillMaxWidth()
+        .fillMaxHeight(0.5f),
         factory = { context ->
-        LineChart(context).apply {
-            setBackgroundColor(Color.WHITE)
-            setTouchEnabled(true)
-            isDragEnabled = true
-            axisRight.isEnabled =false
-            xAxis.position = XAxis.XAxisPosition.BOTTOM
-            setDrawMarkers(true)
-            marker = LineChartMarker(context)
-            isScaleXEnabled = true
-            isScaleYEnabled = true
-            description.isEnabled = false
+            LineChart(context).apply {
+                setBackgroundColor(Color.WHITE)
+                setTouchEnabled(true)
+                isDragEnabled = true
+                axisRight.isEnabled = false
+                xAxis.position = XAxis.XAxisPosition.BOTTOM
+                setDrawMarkers(true)
+                marker = LineChartMarker(context)
+                isScaleXEnabled = true
+                isScaleYEnabled = true
+                description.isEnabled = false
+            }
+        }) { chart ->
+        if (!plotRanges.isZero()) {
+//            chart.xAxis.axisMinimum = plotRanges.minX
+//            chart.xAxis.axisMaximum = plotRanges.maxX
+//            chart.axisLeft.axisMinimum = plotRanges.minY
+//            chart.axisLeft.axisMaximum = plotRanges.maxX
         }
-    }) { chart ->
         chart.data = lineData
+        chart.invalidate()
     }
 }
 

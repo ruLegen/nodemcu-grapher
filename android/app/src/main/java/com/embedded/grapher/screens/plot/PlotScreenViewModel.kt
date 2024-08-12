@@ -25,6 +25,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel() {
 
     var lineData = MutableStateFlow(LineData())
+    var plotRanges = MutableStateFlow(PlotRanges())
 
     private val scope = CoroutineScope(EmptyCoroutineContext)
     private val _files: MutableStateFlow<Async<List<NodeMcuSample>>> =
@@ -35,9 +36,7 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
         )
 
     fun updateRanges(ranges: PlotRanges) {
-        scope.launch {
-            loadSamples("awd")
-        }
+        plotRanges.tryEmit(ranges)
     }
     var i =0
     fun loadSamples(nodeMcuFileName: String) {
