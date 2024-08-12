@@ -14,6 +14,7 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 
 @Composable
 fun PlotScreen(
@@ -21,27 +22,22 @@ fun PlotScreen(
     vm: PlotScreenViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
-    Plot()
+    LaunchedEffect(true) {
+        vm.loadSamples(nodeMcuFileName)
+    }
+    Plot(vm.chartSeriesProduced,vm.lineProvider)
 }
 
 @Composable
-private fun Plot() {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            lineSeries {
-                series(4, 12, 8, 16)
-                series(1, 2, 316)
-            }
-        }
-    }
+private fun Plot(modelProducer: CartesianChartModelProducer,lineProvider: LineCartesianLayer.LineProvider) {
+
     CartesianChartHost(
         rememberCartesianChart(
-            rememberLineCartesianLayer(),
+            rememberLineCartesianLayer(lineProvider),
             startAxis = rememberStartAxis(),
             bottomAxis = rememberBottomAxis(),
         ),
-        modelProducer,
+        modelProducer = modelProducer,
         zoomState = rememberVicoZoomState(zoomEnabled = true),
     )
 }

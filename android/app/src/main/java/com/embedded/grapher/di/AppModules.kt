@@ -2,6 +2,7 @@ package com.embedded.grapher.di
 
 import com.embedded.grapher.services.devicemanager.DeviceManager
 import com.embedded.grapher.services.devicemanager.FakeDeviceManager
+import com.embedded.grapher.services.devicemanager.NodeMcuDeviceManager
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,5 +16,5 @@ abstract class AppModules {
 
     @Binds
     @Singleton
-    abstract fun bindsDeviceManager(dm: FakeDeviceManager) : DeviceManager
+    abstract fun bindsDeviceManager(dm: NodeMcuDeviceManager) : DeviceManager
 }

@@ -14,4 +14,9 @@ class GrapherNavigationActions(private val navController: NavController) {
             launchSingleTop = true
         }
     }
+
+    fun navigateToMainPage() {
+        navController.popBackStack(NavDestinations.CONNECTION, true)
+        navController.navigate(NavDestinations.ROOT)
+    }
 }

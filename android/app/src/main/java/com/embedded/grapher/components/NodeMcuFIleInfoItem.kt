@@ -18,10 +18,18 @@ import androidx.compose.ui.unit.dp
 enum class NodeMcuFileStatus(val status: Int = -1) {
     UNKNOWN(-1),
     CLOSED(0),
-    RUNNING(1)
+    RUNNING(1);
+
+    companion object {
+        fun fromInt(value: Int) = entries.firstOrNull() { it.status == value } ?: UNKNOWN
+    }
 }
 
-data class NodeMcuFileInfo(val id: String, val name: String, val status: NodeMcuFileStatus)
+data class NodeMcuFileInfo(val id: String, val name: String, var status: NodeMcuFileStatus){
+    fun key():String{
+        return "$id$name$status"
+    }
+}
 
 @Composable
 fun NodeMcuFIleInfoItem(

@@ -5,17 +5,22 @@ local cs=coap.Server()
 local cmd_handlers = {} -- str -> arrayOf<function>
 
 function cmd_handler(payload)
-    
     if payload == nil then
         return "cmd null"
     end
-    parsedPayload = split(payload," ")
+    parsedPayload = split(payload,"_")
     splitLen = #parsedPayload
     if splitLen == 0 then
         return "no response"
     end
-
-    filteredPayload = filter(parsedPayload, 
+    local filteredPayload = map(parsedPayload, 
+        function(val)
+            local noEndNewLine = val:gsub('\n*$',"")
+            local res =  noEndNewLine:gsub("\r*$","")
+            return res
+        end
+    )
+    filteredPayload = filter(filteredPayload, 
         function(val)
             return val ~= "" and val ~= "\r\n" and #val > 0
         end
@@ -25,7 +30,6 @@ function cmd_handler(payload)
     end
     cmd = filteredPayload[1]
     handlers = cmd_handlers[cmd]
-
     if handlers == nil or #handlers == 0 then
         return "no handler registered"  
     end
@@ -45,7 +49,8 @@ function cmd_handler(payload)
     if #respond == 0 then
         respond= "OK"
     end
-    return respond:gsub('\n*$',"")
+    local returnVal = respond:gsub('\n*$',"")
+    return returnVal
 end
 
 cs:func("cmd_handler") -- post coap://192.168.18.103:5683/v1/f/cmd will call myfun

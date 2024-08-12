@@ -22,6 +22,23 @@ local function createActiveStream(guid, filename, filestream, channels, status, 
         createdTime = createdTime
     }
 end
+local function getFileStatus(fname)
+    if fname == nil then
+        return STREAM_CLOSED
+    end
+    local splited = split(fname,"%.")
+    local fileGuid = getOrNull(splited,1)
+    fileGuid = tonumber(fileGuid)
+    if fileGuid == nil then
+        return STREAM_CLOSED
+    end
+    local stream = activeWriteStreams[fileGuid]
+    if stream ~= nil then
+        return stream.status
+    else
+        return STREAM_CLOSED
+    end
+end
 
 local function channel_handler(payload)
     local strArray = map(lastChannelValues, function(sample)
@@ -82,18 +99,27 @@ local function stream_hanlder(payload)
     return "unknown cmd"
 end
 local function files_handler(payload)
-
     collectgarbage("collect")
     local cmd = getOrNull(payload, 2)
     if cmd == nil then
         return "bad cmd"
     end
+
     if cmd == "list" then
         local files = fm.getSampleFiles()
+        for _, f in ipairs(files) do
+            local fileName = getOrNull(f,1)
+            if fileName ~= nil then
+                f[#f+1] = getFileStatus(fileName)
+            end
+        end
         local strArray = map(files, function(f)
             return array_to_str(f, ";")
         end)
-        local res = table.concat(strArray, "\n")
+        local res = table.concat(strArray, "@")
+        if #res == 0 then
+            return ""
+        end
         return res
     elseif cmd == "read" then
         local fileName = getOrNull(payload,3)
@@ -152,7 +178,7 @@ local function main_adc_thread(coroutineScope)
 
         -- stat,err = pcall(function() 
         for i in pairs({1, 2, 3, 4}) do
-            readRes = adc_m.readChannel(i)
+            local readRes = adc_m.readChannel(i)
             local sampleTime = tmr.now() -- uS
             local volts = readRes[1] / 1000.0 -- mv to V
             channel_values[#channel_values + 1] = {
@@ -187,7 +213,7 @@ local function main_adc_thread(coroutineScope)
                 for _, ch in ipairs(writechannels) do
                     local channelValue = channel_values[ch]
                     if channelValue ~= nil then
-                        local timeSinceRecord = (channelValue.time - writeStream.createdTime)/100000       --Seconds
+                        local timeSinceRecord = (channelValue.time - writeStream.createdTime)/1000000       --Seconds
                         local writeValue = struct.pack("<ffi",timeSinceRecord,channelValue.value,channelValue.channel)     -- time value channel
                         stat,err = pcall(function() 
                             local stream = writeStream.filestream
@@ -234,6 +260,9 @@ local function initApp(fileManager, coapServer, adsModule)
     coap_s.register("channel", channel_handler)
     coap_s.register("stream", stream_hanlder)
     coap_s.register("files", files_handler)
+    coap_s.register("heartbeat", function(payload)
+        return "OK"
+    end)
 
     coap_s.register("adc_off", function(payload)
         isAdcThreadEnabled = false

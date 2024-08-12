@@ -48,6 +48,13 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            merges += "/META-INF/legal/LICENSE"
+            merges += "/META-INF/legal/3rd-party/CDDL+GPL-1.1.txt"
+            merges += "/META-INF/legal/NOTICE.md"
+            merges += "/META-INF/legal/3rd-party/*"
+
+//            'META-INF/*',
+//            'license/*',
         }
     }
     compileOptions {
@@ -68,6 +75,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.27")
     implementation("com.google.dagger:hilt-android:2.49")
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation(files("../libs/ncoap-core.jar"))
     kapt("com.google.dagger:hilt-android-compiler:2.49")
 
     implementation(libs.androidx.core.ktx)

@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,10 +29,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.embedded.grapher.NavDestinations
+import com.embedded.grapher.screens.connection.ConnectionScreen
 import com.embedded.grapher.screens.debug.DebugScreen
 import com.embedded.grapher.screens.main.MainScreen
 import com.embedded.grapher.screens.plot.PlotScreen
 import kotlinx.coroutines.CoroutineScope
+
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
     AnimatedVisibility(
@@ -45,12 +48,13 @@ fun EnterAnimation(content: @Composable () -> Unit) {
         content()
     }
 }
+
 @Composable
 fun GrapherNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    startDestination: String = NavDestinations.ROOT,
+    startDestination: String = NavDestinations.CONNECTION,
     navActions: GrapherNavigationActions = remember(navController) {
         GrapherNavigationActions(navController)
     }
@@ -62,20 +66,27 @@ fun GrapherNavGraph(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination,
-        enterTransition = {EnterTransition.None},
-        exitTransition = {ExitTransition.None},
-        popEnterTransition = {EnterTransition.None},
-        popExitTransition = {ExitTransition.None},
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
     ) {
-        composable(NavDestinations.ROOT){
-            EnterAnimation{
+        composable(NavDestinations.ROOT) {
+            EnterAnimation {
                 MainScreen(modifier, onNavigateToPlot = {
                     navActions.navigateToPlot(it)
                 })
             }
         }
         composable(NavDestinations.DEBUG_SCREEN) {
-            DebugScreen(modifier, navController)
+            DebugScreen(modifier, navController, coroutineScope)
+        }
+        composable(NavDestinations.CONNECTION) {
+            EnterAnimation {
+                ConnectionScreen(modifier = Modifier.fillMaxHeight(), coroutineScope = coroutineScope, onConnected = {
+                    navActions.navigateToMainPage()
+                })
+            }
         }
         composable(
             NavDestinations.PLOT,
@@ -84,9 +95,10 @@ fun GrapherNavGraph(
                 defaultValue = ""
             })
         ) { params ->
-            val nodemcuSampleFile = params.arguments?.getString(NavDestinations.PlotScreenArgs.FILE_NAME,"") ?: ""
-            EnterAnimation{
-                PlotScreen(nodemcuSampleFile,modifier = modifier)
+            val nodemcuSampleFile =
+                params.arguments?.getString(NavDestinations.PlotScreenArgs.FILE_NAME, "") ?: ""
+            EnterAnimation {
+                PlotScreen(nodemcuSampleFile, modifier = modifier)
             }
         }
     }

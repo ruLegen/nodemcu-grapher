@@ -8,5 +8,6 @@ object NavDestinations {
 
     const val PLOT = "plot/{${PlotScreenArgs.FILE_NAME}}"
     const val ROOT = "/"
+    const val CONNECTION = "/connect"
     const val DEBUG_SCREEN = "debug"
 }
