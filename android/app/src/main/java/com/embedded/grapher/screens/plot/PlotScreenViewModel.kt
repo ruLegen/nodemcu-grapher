@@ -81,7 +81,7 @@ class PlotScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
     }
 
     private fun getColorByChannel(k: Int): Color{
-        var index = k-1;        // channels starts from 1
+        var index = k;        // channels starts from 1
         val colors = arrayOf(Color.Gray, Color.Red, Color.Gray, Color.Blue, Color.Yellow)
         if(index < 0 || index > colors.size-1)
             index =0

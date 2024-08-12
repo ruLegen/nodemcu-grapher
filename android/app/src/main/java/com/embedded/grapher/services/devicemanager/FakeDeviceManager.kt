@@ -19,7 +19,8 @@ class FakeDeviceManager @Inject constructor() : DeviceManager {
                 "id$it",
                 "FileName $it",
                 0,
-                (if(it % 2 == 0)  NodeMcuFileStatus.RUNNING else NodeMcuFileStatus.CLOSED)
+                (if(it % 2 == 0)  NodeMcuFileStatus.RUNNING else NodeMcuFileStatus.CLOSED),
+                0
             )
         }.toList()
     }

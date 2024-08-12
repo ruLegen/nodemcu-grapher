@@ -28,6 +28,9 @@ class MainScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
         )
     val files = _files.asStateFlow()
 
+    init {
+        updateFiles()
+    }
 
     fun updateFiles() {
         if(_files.value.isLoading())
@@ -41,7 +44,7 @@ class MainScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
                 prevFiles = emptyList()
             }
             else{
-                prevFiles = files
+                prevFiles = files.sortedBy {  it.size }
                 _files.tryEmit(Async.Success(prevFiles))
             }
         }
@@ -64,7 +67,13 @@ class MainScreenViewModel @Inject constructor(val dm: DeviceManager) : ViewModel
             if(stoped){
                 prevFiles = prevFiles.map {
                     if(it.id == file){
-                       return@map NodeMcuFileInfo(it.id, it.name, it.size, NodeMcuFileStatus.CLOSED)
+                       return@map NodeMcuFileInfo(
+                           it.id,
+                           it.name,
+                           it.size,
+                           NodeMcuFileStatus.CLOSED,
+                           it.creationTime
+                       )
                     }
                     it
                 }.toList()

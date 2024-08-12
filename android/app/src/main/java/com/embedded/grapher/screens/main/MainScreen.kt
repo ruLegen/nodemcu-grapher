@@ -97,6 +97,7 @@ fun MainScreen(
                                     NodeMcuFIleInfoItem(
                                         id = nodeMcuFileInfo.id,
                                         name = nodeMcuFileInfo.name,
+                                        size = nodeMcuFileInfo.size,
                                         status = nodeMcuFileInfo.status,
                                         onClick = { onNavigateToPlot(it) },
                                         onStop = { vm.stopFileRecording(it) },

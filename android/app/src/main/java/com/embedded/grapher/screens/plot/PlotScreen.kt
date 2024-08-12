@@ -36,6 +36,7 @@ private fun Plot(modelProducer: CartesianChartModelProducer,lineProvider: LineCa
             rememberLineCartesianLayer(lineProvider),
             startAxis = rememberStartAxis(),
             bottomAxis = rememberBottomAxis(),
+            getXStep = {model -> 0.5}
         ),
         modelProducer = modelProducer,
         zoomState = rememberVicoZoomState(zoomEnabled = true),
